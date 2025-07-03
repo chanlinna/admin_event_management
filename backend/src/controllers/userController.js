@@ -24,8 +24,11 @@ export const getUsers = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { username, password, roleId } = req.body;
-    await UserRepo.updateUser(id, username, password, roleId);
+    const { newUsername, newPassword, roleId, oldUsername } = req.body;
+    if (!newUsername || !newPassword || !roleId || !oldUsername) {
+      return res.status(400).json({ error: 'newUsername, newPassword, roleId and oldUsername required' });
+    }
+    await UserRepo.updateUser(id, newUsername, newPassword, roleId, oldUsername);
     res.json({ message: 'User updated' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -44,9 +47,27 @@ export const deleteUser = async (req, res) => {
 
 export const assignRole = async (req, res) => {
   try {
-    const { username, roleName } = req.body;
-    await UserRepo.assignRoleToUser(username, roleName);
-    res.json({ message: `Role ${roleName} assigned to ${username}` });
+    const { username, roleId } = req.body;
+    if (!username || !roleId) {
+      return res.status(400).json({ error: 'username and roleId required' });
+    }
+
+    await UserRepo.assignRoleToUser(username, roleId);
+    res.json({ message: `Role assigned to user ${username}` });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const revokeRole = async (req, res) => {
+  try {
+    const { username, roleId } = req.body;
+    if (!username || !roleId) {
+      return res.status(400).json({ error: 'username and roleId required' });
+    }
+
+    await UserRepo.revokeRoleFromUser(username, roleId);
+    res.json({ message: `Role revoked from user ${username}` });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
