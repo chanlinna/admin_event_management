@@ -1,20 +1,13 @@
 // Define Express routes/endpoints for user-related API calls
-import express from "express";
-import {
-  createUser,
-  updateUser,
-  deleteUser
-} from "../controllers/userController.js";
+// routes/userRoutes.js
+import express from 'express';
+import * as userController from '../controllers/userController.js';
 
 const router = express.Router();
 
-// Create
-router.post("/users", createUser);
-
-// Update
-router.put("/users/:id", updateUser);
-
-// Delete
-router.delete("/users/:id", deleteUser);
+router.post('/users', userController.createUser);
+router.put('/users/:username', userController.updateUser);  // use username param
+router.delete('/users/:username', userController.deleteUser);  // use username param
 
 export default router;
+
