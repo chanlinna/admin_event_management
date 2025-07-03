@@ -4,7 +4,6 @@ import db from '../config/db.js';
 // create new user
 export const createUser = async (username, password, roleId) => {
   await db.query(`CREATE USER '${username}'@'localhost' IDENTIFIED BY '${password}'`);
-  await db.query(`GRANT (SELECT) ON *.* TO '${username}'@'localhost'`); // optional default grant
   const [res] = await db.query(
     'INSERT INTO db_user (username, password, role_id) VALUES (?, ?, ?)',
     [username, password, roleId]
@@ -23,12 +22,16 @@ export const getUsersWithRoles = async () => {
   return rows;
 };
 
-// update user
-export const updateUser = async (id, username, password, roleId) => {
-  await db.query(`ALTER USER '${username}'@'localhost' IDENTIFIED BY '${password}'`);
+// Update (rename) user + password + roleId
+export const updateUser = async (id, newUsername, newPassword, roleId, oldUsername) => {
+  // Rename MySQL user
+  await db.query(`RENAME USER '${oldUsername}'@'localhost' TO '${newUsername}'@'localhost'`);
+  // Update password
+  await db.query(`ALTER USER '${newUsername}'@'localhost' IDENTIFIED BY '${newPassword}'`);
+  // Update role in your table
   await db.query(
     'UPDATE db_user SET username = ?, password = ?, role_id = ? WHERE user_id = ?',
-    [username, password, roleId, id]
+    [newUsername, newPassword, roleId, id]
   );
 };
 
@@ -39,7 +42,26 @@ export const deleteUser = async (id, username) => {
 };
 
 
-// assign a role to a user
-export const assignRoleToUser = async (username, roleName) => {
-  await db.query(`GRANT '${roleName}' TO '${username}'@'localhost'`);
+export const assignRoleToUser = async (username, roleId) => {
+  // Get role name by roleId
+  const [[role]] = await db.query('SELECT role_name FROM db_role WHERE role_id = ?', [roleId]);
+  if (!role) throw new Error('Role not found');
+
+  // Update user's role_id in your app table
+  await db.query('UPDATE db_user SET role_id = ? WHERE username = ?', [roleId, username]);
+
+  // Grant MySQL role to user
+  await db.query(`GRANT '${role.role_name}' TO '${username}'@'localhost'`);
+};
+
+export const revokeRoleFromUser = async (username, roleId) => {
+  // Get role name by roleId
+  const [[role]] = await db.query('SELECT role_name FROM db_role WHERE role_id = ?', [roleId]);
+  if (!role) throw new Error('Role not found');
+
+  // Remove role assignment in your user table
+  await db.query('UPDATE db_user SET role_id = NULL WHERE username = ?', [username]);
+
+  // Revoke MySQL role from user
+  await db.query(`REVOKE '${role.role_name}' FROM '${username}'@'localhost'`);
 };
