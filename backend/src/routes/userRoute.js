@@ -8,5 +8,5 @@ router.post('/', UserController.createUser);
 router.put('/:id', UserController.updateUser);
 router.delete('/:id/:username', UserController.deleteUser);
 router.post('/assign-role', UserController.assignRole);
-router.post('/revoke-role', UserController.revokeRoleFromUser);
+router.post('/:id/revoke-role', UserController.revokeRoleFromUser);
 export default router;

@@ -1,5 +1,3 @@
-// # Handle logic for user CRUD operations and fetching users with roles
-// call repositories
 import * as UserRepo from '../repositories/userRepository.js';
 
 export const createUser = async (req, res) => {
@@ -21,14 +19,36 @@ export const getUsers = async (req, res) => {
   }
 };
 
+export const getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await UserRepo.getUserById(id);
+    if (!user || user.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user[0]); // Return the first user found
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { newUsername, newPassword, roleId, oldUsername } = req.body;
-    if (!newUsername || !newPassword || !roleId || !oldUsername) {
-      return res.status(400).json({ error: 'newUsername, newPassword, roleId and oldUsername required' });
+    
+    // Make fields optional except oldUsername
+    if (!oldUsername) {
+      return res.status(400).json({ error: 'oldUsername is required' });
     }
-    await UserRepo.updateUser(id, newUsername, newPassword, roleId, oldUsername);
+    
+    await UserRepo.updateUser(
+      id, 
+      newUsername || undefined, 
+      newPassword || undefined, 
+      roleId || undefined, 
+      oldUsername
+    );
     res.json({ message: 'User updated' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -64,16 +84,38 @@ export const revokeRoleFromUser = async (req, res) => {
     const { id } = req.params;
     const { username } = req.body;
     
-    // Find user to get current roleId
-    const [user] = await UserRepo.getUserById(id);
-    if (!user) throw new Error('User not found');
-    
-    if (user.role_id) {
-      await UserRepo.revokeRoleFromUser(username, user.role_id);
+    if (!username) {
+      return res.status(400).json({ error: 'username is required' });
     }
+
+    // Get user data - properly handle the query result
+    const userRows = await UserRepo.getUserById(id);
     
-    res.json({ message: 'Role revoked successfully' });
+    if (!userRows || userRows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = userRows[0]; // Get the first user
+    
+    if (!user.role_id) {
+      return res.status(400).json({ error: 'User has no role assigned' });
+    }
+
+    // Revoke the role
+    await UserRepo.revokeRoleFromUser(username, user.role_id);
+    
+    return res.json({ 
+      message: 'Role revoked successfully',
+      userId: id,
+      username: username,
+      revokedRoleId: user.role_id
+    });
+    
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error revoking role:', error);
+    res.status(500).json({ 
+      error: 'Failed to revoke role',
+      details: error.message
+    });
   }
 };
