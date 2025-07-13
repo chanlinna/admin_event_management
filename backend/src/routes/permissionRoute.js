@@ -9,5 +9,7 @@ router.put('/:id', PermissionController.updatePermission);
 router.delete('/:id', PermissionController.deletePermission);
 router.post('/assign', PermissionController.assignPermission);
 router.post('/revoke', PermissionController.revokePermission);
+router.post('/assign-to-user', PermissionController.assignPermissionToUser);
+router.post('/revoke-from-user', PermissionController.revokePermissionFromUser);
 
 export default router;

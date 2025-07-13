@@ -50,3 +50,33 @@ export const getRolesWithPermissions = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getRoleById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const roleWithPermissions = await RoleRepo.getRoleById(id);
+    
+    if (roleWithPermissions.length === 0) {
+      return res.status(404).json({ error: 'Role not found' });
+    }
+    
+    // Transform the data for better frontend consumption
+    const response = {
+      role_id: parseInt(id),
+      role_name: roleWithPermissions[0].role_name,
+      permissions: roleWithPermissions.map(perm => ({
+        permission_name: perm.permission,
+        db_name: perm.dbName,
+        table_name: perm.table
+      }))
+    };
+    
+    res.json(response);
+    
+  } catch (error) {
+    res.status(500).json({ 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};

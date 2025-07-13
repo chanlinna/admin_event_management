@@ -33,11 +33,21 @@ export const deleteRole = async (id, roleName) => {
 
 export const getRolesWithPermissions = async () => {
   const [rows] = await db.query(`
-    SELECT r.role_name, p.permission_name AS permission
+    SELECT r.role_id, r.role_name, p.permission_name AS permission, rp.dbName, rp.table
     FROM db_role r
     JOIN role_permissions rp ON r.role_id = rp.role_id
-    JOIN db_permission p ON rp.permission_id = p.permission_id
+    JOIN db_permissions p ON rp.permission_id = p.permission_id
     ORDER BY r.role_name
   `);
   return rows;
+};
+
+export const getRoleById = async (id) => {
+  const [rows] = await db.query(`
+    select r.role_name, p.permission_name as permission, rp.dbName, rp.table from db_role r 
+    join role_permissions rp on r.role_id = rp.role_id
+    join db_permissions p on rp.permission_id = p.permission_id
+    where r.role_id = ?
+    `, [id]);
+    return rows;
 };
