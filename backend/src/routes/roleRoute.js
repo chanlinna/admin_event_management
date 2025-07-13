@@ -8,5 +8,6 @@ router.post('/', RoleController.createRole);
 router.put('/:id', RoleController.updateRole);
 router.delete('/:id/:roleName', RoleController.deleteRole);
 router.get('/with-permissions', RoleController.getRolesWithPermissions);
+router.get('/:id', RoleController.getRoleById);
 
 export default router;

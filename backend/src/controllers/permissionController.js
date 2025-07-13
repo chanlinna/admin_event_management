@@ -42,9 +42,14 @@ export const deletePermission = async (req, res) => {
 
 export const assignPermission = async (req, res) => {
   try {
-    const { roleName, permissionName, dbName } = req.body;
-    await PermissionRepo.assignPermissionToRole(roleName, permissionName, dbName);
-    res.json({ message: `Granted ${permissionName} on ${dbName}.* to ${roleName}` });
+    const { roleName, permissionName, dbName, table } = req.body;
+
+    if (!roleName || !permissionName || !dbName || !table) {
+      return res.status(400).json({ error: 'roleName, permissionName, dbName, and table are required' });
+    }
+
+    await PermissionRepo.assignPermissionToRole(roleName, permissionName, dbName, table);
+    res.json({ message: `Permission ${permissionName} granted to role ${roleName} on ${dbName}.${table}` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -52,14 +57,43 @@ export const assignPermission = async (req, res) => {
 
 export const revokePermission = async (req, res) => {
   try {
-    const { roleName, permissionName, dbName } = req.body;
-    if (!roleName || !permissionName || !dbName) {
-      return res.status(400).json({ error: 'roleName, permissionName, and dbName are required' });
+    const { roleName, permissionName, dbName, table } = req.body;
+    if (!roleName || !permissionName || !dbName || !table) {
+      return res.status(400).json({ error: 'roleName, permissionName, dbName, and table are required' });
     }
 
-    await PermissionRepo.revokePermissionToRole(roleName, permissionName, dbName);
-    res.json({ message: `Permission ${permissionName} revoked from role ${roleName} on database ${dbName}` });
+    await PermissionRepo.revokePermissionToRole(roleName, permissionName, dbName, table);
+    res.json({message: `Revoked ${permissionName} on ${dbName}.${table} from ${roleName}` });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+export const assignPermissionToUser = async (req, res) => {
+  try {
+    const { username, permissionName, dbName, table } = req.body;
+    if (!username || !permissionName || !dbName || !table) {
+      return res.status(400).json({ error: 'username, permissionName, dbName, and table are required' });
+    }
+
+    await PermissionRepo.assignPermissionToUser(username, permissionName, dbName, table);
+    res.json({ message: `Permission ${permissionName} granted to user ${username} on ${dbName}.${table}` });
+  }
+  catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const revokePermissionFromUser = async (req, res) => {
+  try {
+    const { username, permissionName, dbName, table } = req.body;
+    if (!username || !permissionName || !dbName || !table) {
+      return res.status(400).json({ error: 'username, permissionName, dbName, and table are required' });
+    }
+
+    await PermissionRepo.revokePermissionFromUser(username, permissionName, dbName, table);
+    res.json({ message: `Revoked ${permissionName} on ${dbName}.${table} from ${username}` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

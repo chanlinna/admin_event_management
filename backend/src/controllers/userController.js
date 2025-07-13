@@ -59,15 +59,20 @@ export const assignRole = async (req, res) => {
   }
 };
 
-export const revokeRole = async (req, res) => {
+export const revokeRoleFromUser = async (req, res) => {
   try {
-    const { username, roleId } = req.body;
-    if (!username || !roleId) {
-      return res.status(400).json({ error: 'username and roleId required' });
+    const { id } = req.params;
+    const { username } = req.body;
+    
+    // Find user to get current roleId
+    const [user] = await UserRepo.getUserById(id);
+    if (!user) throw new Error('User not found');
+    
+    if (user.role_id) {
+      await UserRepo.revokeRoleFromUser(username, user.role_id);
     }
-
-    await UserRepo.revokeRoleFromUser(username, roleId);
-    res.json({ message: `Role revoked from user ${username}` });
+    
+    res.json({ message: 'Role revoked successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
