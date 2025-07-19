@@ -8,6 +8,9 @@ const Users = ({ onLogout }) => {
   const [roles, setRoles] = useState([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedRole, setSelectedRole] = useState('');
   const [newUser, setNewUser] = useState({
     username: '',
     password: '',
@@ -103,10 +106,9 @@ const Users = ({ onLogout }) => {
       const token = localStorage.getItem('token');
       const selectedRole = roles.find(role => role.role_name === editingUser.roleName);
       
-      // At least one field should be changed
       if (editingUser.newUsername === editingUser.username && 
           !editingUser.password && 
-          editingUser.roleName === (users.find(u => u.user_id === editingUser.userId)?.role_name || '')) {
+          editingUser.roleName === (users.find(u => u.user_id === editingUser.userId)?.role_name) || '') {
         throw new Error('No changes detected');
       }
 
@@ -118,7 +120,7 @@ const Users = ({ onLogout }) => {
         },
         body: JSON.stringify({
           newUsername: editingUser.newUsername.trim() || editingUser.username,
-          newPassword: editingUser.password.trim() || null, // Send null if blank
+          newPassword: editingUser.password.trim() || null,
           roleId: selectedRole?.role_id || null,
           oldUsername: editingUser.username
         })
@@ -175,6 +177,50 @@ const Users = ({ onLogout }) => {
       ));
     } catch (error) {
       console.error('Error revoking role:', error);
+      alert(error.message);
+    }
+  };
+
+  const handleAssignRole = (user) => {
+    setSelectedUser(user);
+    setShowRoleModal(true);
+  };
+
+  const handleRoleAssignment = async () => {
+    if (!selectedRole) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const roleObj = roles.find(r => r.role_name === selectedRole);
+      
+      const response = await fetch(
+        `http://localhost:3000/api/users/assign-role`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            username: selectedUser.username,
+            roleId: roleObj.role_id
+          })
+        }
+      );
+
+      if (response.ok) {
+        setUsers(users.map(user => 
+          user.user_id === selectedUser.user_id ? { 
+            ...user, 
+            role_name: selectedRole 
+          } : user
+        ));
+        setShowRoleModal(false);
+        setSelectedRole('');
+      }
+    } catch (error) {
+      console.error('Error assigning role:', error);
+      alert(error.message);
     }
   };
 
@@ -247,7 +293,7 @@ const Users = ({ onLogout }) => {
                 />
               </div>
               <div className="form-group">
-                <label>New Username (leave blank to keep current):</label>
+                <label>New Username:</label>
                 <input
                   type="text"
                   value={editingUser.newUsername}
@@ -292,11 +338,50 @@ const Users = ({ onLogout }) => {
           </div>
         )}
         
+        {showRoleModal && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <h3>Assign Role to {selectedUser?.username}</h3>
+              <select
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+                className="role-select"
+              >
+                <option value="">Select a role</option>
+                {roles.map(role => (
+                  <option key={role.role_id} value={role.role_name}>
+                    {role.role_name}
+                  </option>
+                ))}
+              </select>
+              <div className="modal-actions">
+                <button 
+                  onClick={handleRoleAssignment}
+                  disabled={!selectedRole}
+                  className="submit-button"
+                >
+                  Assign
+                </button>
+                <button 
+                  onClick={() => {
+                    setShowRoleModal(false);
+                    setSelectedRole('');
+                  }}
+                  className="cancel-button"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <UserTable 
           users={users} 
           onEdit={handleEditUser}
           onDelete={handleDeleteUser}
           onRevokeRole={handleRevokeRole}
+          onAssignRole={handleAssignRole}
         />
       </div>
     </div>

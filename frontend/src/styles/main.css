@@ -13,8 +13,9 @@ body {
 
 .main-content {
   flex: 1;
-  padding: 20px;
-  background-color: #fff;
+  padding: 25px;
+  transition: margin-left 0.3s ease;
+  background-color: #f9f9f9;
 }
 
 h1, h2, h3, h4 {
@@ -466,6 +467,14 @@ tr:hover {
   background-color: #5a6268;
 }
 
+.action-buttons button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
 .loading {
   text-align: center;
   padding: 40px;
@@ -477,5 +486,102 @@ tr:hover {
   .permissions-table {
     display: block;
     overflow-x: auto;
+  }
+}
+
+.assign-button {
+  background-color: #4CAF50; /* Green */
+  color: white;
+}
+
+.revoke-button {
+  background-color: #f44336; /* Red */
+  color: white;
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+/* Role permissions container */
+.role-permissions-container {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Table styles */
+.table-container {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.permissions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.permissions-table th {
+  background-color: #3498db;
+  color: white;
+  padding: 12px 15px;
+  text-align: left;
+}
+
+.permissions-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.permissions-table tr:hover {
+  background-color: #f5f7fa;
+}
+
+/* Message styles */
+.no-permissions,
+.not-found {
+  color: #666;
+  padding: 20px;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Back button */
+.action-button.back {
+  background-color: #7f8c8d;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: background-color 0.2s;
+}
+
+.action-button.back:hover {
+  background-color: #95a5a6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 15px;
+  }
+  
+  .role-permissions-container {
+    padding: 15px;
+  }
+  
+  .permissions-table th,
+  .permissions-table td {
+    padding: 8px 12px;
+    font-size: 0.9rem;
   }
 }

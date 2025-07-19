@@ -1,7 +1,7 @@
 import React from 'react';
 import '../styles/main.css';
 
-const PermissionTable = ({ permissions, onDelete }) => {
+const PermissionTable = ({ permissions, onDelete, onEdit }) => {
   return (
     <div className="table-container">
       <table>
@@ -18,7 +18,12 @@ const PermissionTable = ({ permissions, onDelete }) => {
               <td>{permission.permission_id}</td>
               <td>{permission.permission_name}</td>
               <td>
-                <button className="action-button edit">Edit</button>
+                <button 
+                  className="action-button edit" 
+                  onClick={() => onEdit(permission)}
+                >
+                  Edit
+                </button>
                 <button 
                   className="action-button delete" 
                   onClick={() => onDelete(permission.permission_id)}
