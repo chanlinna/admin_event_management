@@ -1,5 +1,3 @@
-//  # Handle logic for creating, reading, updating, deleting roles
-// call repositories
 import * as RoleRepo from '../repositories/roleRepository.js';
 
 export const createRole = async (req, res) => {
@@ -67,7 +65,8 @@ export const getRoleById = async (req, res) => {
       permissions: roleWithPermissions.map(perm => ({
         permission_name: perm.permission,
         db_name: perm.dbName,
-        table_name: perm.table
+        table_name: perm.table,
+        with_grant_option: perm.with_grant_option === 1 // Convert to boolean
       }))
     };
     

@@ -12,7 +12,8 @@ const Roles = ({ onLogout }) => {
     roleName: '',
     permissions: [],
     dbName: '',
-    table: ''
+    table: '',
+    withGrantOption: false
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -88,16 +89,12 @@ const Roles = ({ onLogout }) => {
                 roleName: newRole.roleName,
                 permissionName,
                 dbName: newRole.dbName,
-                table: newRole.table
+                table: newRole.table,
+                withGrantOption: newRole.withGrantOption
               })
             })
           )
         );
-
-        const failedPermissions = permissionResults.filter(res => !res.ok);
-        if (failedPermissions.length > 0) {
-          console.warn('Some permissions failed to assign');
-        }
       }
       
       // Refresh the roles list
@@ -106,7 +103,7 @@ const Roles = ({ onLogout }) => {
       }).then(res => res.json());
       
       setRoles(updatedRoles);
-      setNewRole({ roleName: '', permissions: [], dbName: '', table: '' });
+      setNewRole({ roleName: '', permissions: [], dbName: '', table: '', withGrantOption: false });
       setShowCreateForm(false);
       alert('Role created successfully');
       
@@ -208,6 +205,16 @@ const Roles = ({ onLogout }) => {
                   ))}
                 </select>
                 <small>Hold CTRL/CMD to select multiple permissions</small>
+              </div>
+              <div className="form-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={newRole.withGrantOption || false}
+                    onChange={(e) => setNewRole({...newRole, withGrantOption: e.target.checked})}
+                  />
+                  With Grant Option (allows this role to grant the permission to others)
+                </label>
               </div>
               <button type="submit" className="submit-button">Create Role</button>
             </form>

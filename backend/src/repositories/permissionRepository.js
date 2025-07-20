@@ -18,18 +18,43 @@ export const deletePermission = async (id) => {
   await db.query('DELETE FROM db_permissions WHERE permission_id = ?', [id]);
 };
 
-export const assignPermissionToRole = async (roleName, permissionName, dbName, table) => {
-  // Get role and permission ids
-  const [[role]] = await db.query('SELECT role_id FROM db_role WHERE role_name = ?', [roleName]);
-  const [[permission]] = await db.query('SELECT permission_id FROM db_permissions WHERE permission_name = ?', [permissionName]);
+export const assignPermissionToRole = async (roleName, permissionName, dbName, table, withGrantOption = false) => {
+  await db.query('START TRANSACTION');
+  try {
+    // Get role and permission IDs (keep this part the same)
+    const [[role]] = await db.query('SELECT role_id FROM db_role WHERE role_name = ?', [roleName]);
+    const [[permission]] = await db.query(
+      'SELECT permission_id FROM db_permissions WHERE permission_name = ?', 
+      [permissionName]
+    );
 
-  if (!role || !permission) throw new Error('Role or permission not found');
+    if (!role) throw new Error('Role not found');
+    if (!permission) throw new Error('Permission not found');
 
-  // Grant in MySQL and insert into pivot table
-  await db.query(`GRANT ${permissionName} ON ${dbName}.${table} TO '${roleName}'`);
-  await db.query('INSERT INTO role_permissions (role_id, permission_id, dbName, \`table\`) VALUES (?, ?, ?, ?)', 
-    [role.role_id, permission.permission_id, dbName, table]
-  );
+    // Simple GRANT statement without parameterization
+    const grantQuery = withGrantOption
+      ? `GRANT ${permissionName} ON ${dbName}.${table} TO '${roleName}' WITH GRANT OPTION`
+      : `GRANT ${permissionName} ON ${dbName}.${table} TO '${roleName}'`;
+    
+    await db.query(grantQuery, [roleName]); // Execute directly without parameters
+
+    // Keep the rest of your code the same
+    const grantOptionValue = withGrantOption ? 1 : 0;
+    await db.query(
+      `INSERT INTO role_permissions 
+       (role_id, permission_id, dbName, \`table\`, with_grant_option) 
+       VALUES (?, ?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE
+       permission_id = VALUES(permission_id),
+       with_grant_option = VALUES(with_grant_option)`,
+      [role.role_id, permission.permission_id, dbName, table, grantOptionValue]
+    );
+
+    await db.query('COMMIT');
+  } catch (error) {
+    await db.query('ROLLBACK');
+    throw error;
+  }
 };
 
 export const revokePermissionToRole = async (roleName, permissionName, dbName, table) => {

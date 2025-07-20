@@ -1,5 +1,5 @@
 import * as PermissionRepo from '../repositories/permissionRepository.js';
-
+import db from '../config/db.js';
 export const createPermission = async (req, res) => {
   try {
     const { name } = req.body;
@@ -42,16 +42,46 @@ export const deletePermission = async (req, res) => {
 
 export const assignPermission = async (req, res) => {
   try {
-    const { roleName, permissionName, dbName, table } = req.body;
+    const { roleName, permissionName, dbName, table, withGrantOption } = req.body;
 
     if (!roleName || !permissionName || !dbName || !table) {
-      return res.status(400).json({ error: 'roleName, permissionName, dbName, and table are required' });
+      return res.status(400).json({ 
+        error: 'roleName, permissionName, dbName, and table are required' 
+      });
     }
 
-    await PermissionRepo.assignPermissionToRole(roleName, permissionName, dbName, table);
-    res.json({ message: `Permission ${permissionName} granted to role ${roleName} on ${dbName}.${table}` });
+    console.log('Received request with withGrantOption:', withGrantOption, typeof withGrantOption);
+    
+    const grantOption = Boolean(withGrantOption)
+    console.log('Converted grantOption:', grantOption);
+
+    await PermissionRepo.assignPermissionToRole(
+      roleName, 
+      permissionName, 
+      dbName, 
+      table, 
+      grantOption
+    );
+    
+    // Verify the update
+    const [updated] = await db.query(
+      'SELECT with_grant_option FROM role_permissions WHERE role_id = ? AND permission_id = ? AND dbName = ? AND `table` = ?',
+      [/* get these IDs from your DB */]
+    );
+    
+    console.log('Updated record verification:', updated);
+    
+    res.json({ 
+      message: `Permission ${permissionName} granted to role ${roleName} on ${dbName}.${table}` +
+               (grantOption ? ' WITH GRANT OPTION' : ''),
+      withGrantOption: grantOption
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Error in controller:', err);
+    res.status(500).json({ 
+      error: err.message,
+      details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 };
 

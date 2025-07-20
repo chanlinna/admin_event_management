@@ -66,6 +66,7 @@ const RolePermissions = () => {
                         <th>Permission</th>
                         <th>Database</th>
                         <th>Table</th>
+                        <th>Grant Option</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -74,6 +75,9 @@ const RolePermissions = () => {
                           <td>{perm.permission_name || perm.name}</td>
                           <td>{perm.db_name || perm.db || 'N/A'}</td>
                           <td>{perm.table_name || perm.table || 'N/A'}</td>
+                          <td>
+                            {Boolean(perm.with_grant_option) ? 'Yes' : 'No'}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
