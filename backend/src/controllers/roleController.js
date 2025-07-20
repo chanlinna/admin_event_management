@@ -58,7 +58,6 @@ export const getRoleById = async (req, res) => {
       return res.status(404).json({ error: 'Role not found' });
     }
     
-    // Transform the data for better frontend consumption
     const response = {
       role_id: parseInt(id),
       role_name: roleWithPermissions[0].role_name,
@@ -66,7 +65,7 @@ export const getRoleById = async (req, res) => {
         permission_name: perm.permission,
         db_name: perm.dbName,
         table_name: perm.table,
-        with_grant_option: perm.with_grant_option === 1 // Convert to boolean
+        with_grant_option: perm.with_grant_option === 1 
       }))
     };
     

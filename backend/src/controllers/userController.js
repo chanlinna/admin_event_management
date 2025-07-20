@@ -26,7 +26,7 @@ export const getUserById = async (req, res) => {
     if (!user || user.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.json(user[0]); // Return the first user found
+    res.json(user[0]); 
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -37,7 +37,6 @@ export const updateUser = async (req, res) => {
     const { id } = req.params;
     const { newUsername, newPassword, roleId, oldUsername } = req.body;
     
-    // Make fields optional except oldUsername
     if (!oldUsername) {
       return res.status(400).json({ error: 'oldUsername is required' });
     }
@@ -88,14 +87,13 @@ export const revokeRoleFromUser = async (req, res) => {
       return res.status(400).json({ error: 'username is required' });
     }
 
-    // Get user data - properly handle the query result
     const userRows = await UserRepo.getUserById(id);
     
     if (!userRows || userRows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const user = userRows[0]; // Get the first user
+    const user = userRows[0]; 
     
     if (!user.role_id) {
       return res.status(400).json({ error: 'User has no role assigned' });

@@ -63,11 +63,6 @@ export const assignPermission = async (req, res) => {
       grantOption
     );
     
-    // Verify the update
-    const [updated] = await db.query(
-      'SELECT with_grant_option FROM role_permissions WHERE role_id = ? AND permission_id = ? AND dbName = ? AND `table` = ?',
-      [/* get these IDs from your DB */]
-    );
     
     console.log('Updated record verification:', updated);
     

@@ -21,7 +21,7 @@ export const deletePermission = async (id) => {
 export const assignPermissionToRole = async (roleName, permissionName, dbName, table, withGrantOption = false) => {
   await db.query('START TRANSACTION');
   try {
-    // Get role and permission IDs (keep this part the same)
+ 
     const [[role]] = await db.query('SELECT role_id FROM db_role WHERE role_name = ?', [roleName]);
     const [[permission]] = await db.query(
       'SELECT permission_id FROM db_permissions WHERE permission_name = ?', 
@@ -31,14 +31,12 @@ export const assignPermissionToRole = async (roleName, permissionName, dbName, t
     if (!role) throw new Error('Role not found');
     if (!permission) throw new Error('Permission not found');
 
-    // Simple GRANT statement without parameterization
     const grantQuery = withGrantOption
       ? `GRANT ${permissionName} ON ${dbName}.${table} TO '${roleName}' WITH GRANT OPTION`
       : `GRANT ${permissionName} ON ${dbName}.${table} TO '${roleName}'`;
     
-    await db.query(grantQuery, [roleName]); // Execute directly without parameters
+    await db.query(grantQuery, [roleName]);
 
-    // Keep the rest of your code the same
     const grantOptionValue = withGrantOption ? 1 : 0;
     await db.query(
       `INSERT INTO role_permissions 

@@ -1,4 +1,3 @@
-//  All queries related to roles
 import db from '../config/db.js';
 
 export const createRole = async (roleName) => {

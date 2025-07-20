@@ -40,7 +40,6 @@ export const login = async (req, res) => {
     // Debug: log the user object to verify structure
     console.log('User from DB:', user);
 
-    // Make sure we're using the correct password field name
     const passwordField = user.hashed_password || user.password;
     if (!passwordField) {
       return res.status(500).json({ error: 'Password field not found in user object' });

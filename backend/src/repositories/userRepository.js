@@ -15,7 +15,7 @@ export const createUser = async (username, password, roleId) => {
 export const getUserById = async (id) => {
   try {
     const [rows] = await db.query('SELECT * FROM db_user WHERE user_id = ?', [id]);
-    return rows; // Always returns an array (empty if no results)
+    return rows;
   } catch (error) {
     console.error('Error fetching user:', error);
     throw error;

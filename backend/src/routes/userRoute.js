@@ -1,4 +1,4 @@
-// Define Express routes/endpoints for user-related API calls
+
 import express from 'express';
 import * as UserController from '../controllers/userController.js';
 const router = express.Router();
